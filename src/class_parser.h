@@ -7,6 +7,6 @@ unsigned int parse_attribute(void *cps, void *attribute_info,
 unsigned int parse_constant_pool(void *cps, unsigned char * ptr,
 		unsigned int constant_pool_size);
 
-void parse_class(unsigned char *ptr, CLASS *class_info);
+void load(unsigned char *ptr, CLASS *class_info);
 
 unsigned int parse_fields(CLASS *class_info, unsigned char *ptr);

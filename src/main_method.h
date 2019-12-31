@@ -1,1 +1,1 @@
-void main_method();
+void start(CLASS* main_class);

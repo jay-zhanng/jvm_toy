@@ -5,23 +5,20 @@
 #include "class_loader.h"
 #include "args_parser.h"
 
-extern char* MAIN_CLASS;
-
 int main(int argc, char *argv[]) {
 
-	if (argc != 3) {
-		printf("Please insert param: class-path and main-class !\n");
+	if (argc != 4) {
+		printf("please insert parameters: class-path main-class print_log!\n");
 		return 0;
 	}
 
-	args_parse(argc, argv);
-
 	init();
 
-	load_class(MAIN_CLASS);
+	char* main_class_name = parse_args(argc, argv);
 
-	main_method();
+	CLASS* main_class_info = load_class(main_class_name);
 
+	start(main_class_info);
 	printf("--------------all over!--------------\n");
 	return 1;
 }

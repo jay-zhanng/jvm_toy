@@ -9,58 +9,69 @@
 
 extern char* CLASS_PATH;
 extern char* DOT_CLASS;
+extern int PRINT_LOG;
 
+/**
+ *class load -> class prepare -> class init
+ */
 CLASS* load_class(char* class_name) {
 
-	//check  if this class have bean leaded
-	CLASS* class_info = search_class_info(class_name);
-	if (class_info != NULL) {
-		return class_info;
+	//check if this class has bean loaded
+	CLASS* class_info_ptr = search_class_info(class_name);
+	if (class_info_ptr != NULL) {
+		return class_info_ptr;
 	}
 
-	printf("--------------class (%s) load start--------------\n", class_name);
+	if (PRINT_LOG)
+		printf("--------------class (%s) load start--------------\n",
+				class_name);
 
+	//get full class file path
 	unsigned total_length = str_len(CLASS_PATH) + str_len(class_name)
 			+ str_len(DOT_CLASS) + 1;
 	char* full_class_path = (char*) malloc(total_length);
 	get_full_class_path(full_class_path, class_name);
 	full_class_path[total_length - 1] = 0;
-	printf("full class (%s) path is: %s\n", class_name, full_class_path);
+	if (PRINT_LOG)
+		printf("full class (%s) path is: %s\n", class_name, full_class_path);
 
 	unsigned int file_size = get_file_size(full_class_path);
-	printf("class file (%s) size:%d\n", full_class_path, file_size);
+	if (PRINT_LOG)
+		printf("class file (%s) size:%d\n", full_class_path, file_size);
 
 	unsigned char *class_file_ptr = malloc(file_size);
 	read_file(full_class_path, file_size, class_file_ptr);
-	printf("class file (%s) content:\n", full_class_path);
+//	if (PRINT_LOG)printf("class file (%s) content:\n", full_class_path);
 //	dump_memory(class_file_ptr, file_size);
 	free(full_class_path);
 
-	class_info = req_class();
-	class_info->clinit_methods_ptr = NULL;
-	class_info->static_field_value_ptr = NULL;
-	class_info->super_class_full_name = NULL;
-	class_info->super_class_info = NULL;
-	class_info->inst_fileds_info_ptr = NULL;
+	class_info_ptr = req_class();
 
-	//1.Loading
-	parse_class(class_file_ptr, class_info);
+	class_info_ptr->class_file_size = file_size;
+
+	//1.Load
+	load(class_file_ptr, class_info_ptr);
 	free(class_file_ptr);
 
 	//2.Verification(pass)
 
-	if (class_info->super_class_full_name != NULL) {
-		load_class(class_info->super_class_full_name);
+	//load super class, initialization of a class requires prior initialization of
+	//all its superclasses
+	if (class_info_ptr->super_class_name != NULL) {
+		load_class(class_info_ptr->super_class_name);
 	}
 
 	//3.Preparation
-	prepare_class(class_info);
+	prepare_class(class_info_ptr);
+
 	//4.Resolution(pass)
-	//5.Initialization,first init super class, java.lang.Object just ignore
-	init_class(class_info);
 
-	printf("--------------class (%s) load over--------------\n",
-			class_info->this_class_full_name);
+	//5.Initialization
+	init_class(class_info_ptr);
 
-	return class_info;
+	if (PRINT_LOG)
+		printf("--------------class (%s) load over--------------\n",
+				class_info_ptr->this_class_name);
+
+	return class_info_ptr;
 }

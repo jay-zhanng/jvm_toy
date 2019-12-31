@@ -3,20 +3,17 @@
 #include "struct.h"
 #include "util.h"
 
-/**
- *parse main method param
- */
+extern char* CLASSPATH;
+extern char* MAINCLASS;
+extern char* COLON;
+extern char* PRINT_LOG_STR;
 
-const char* CLASSPATH = "class-path";
-const char* MAINCLASS = "main-class";
-const char* SEPARATOR = ":";
-
-extern char* CLASS_PATH;
-extern char* MAIN_CLASS;
+char* CLASS_PATH;
+int PRINT_LOG;
 
 void get_class_path(char *argv) {
-	unsigned int index = str_indexof(argv, SEPARATOR);
-	char* classpath = str_sub_indexof(argv, ++index);
+	int index = str_find_index(argv, COLON);
+	char* classpath = str_sub(argv, ++index);
 
 	int str_length = str_len(classpath);
 	if (classpath[str_length - 1] != '/') {
@@ -27,29 +24,49 @@ void get_class_path(char *argv) {
 		bytes[str_length] = '/';
 		bytes[str_length + 1] = 0;
 		CLASS_PATH = bytes;
-
 	} else {
 		CLASS_PATH = classpath;
 	}
 
-	printf("class path is:%s\n", CLASS_PATH);
+	if (PRINT_LOG)
+		printf("class path is:%s\n", CLASS_PATH);
 }
 
-void get_main_class(char *argv) {
-	unsigned int index = str_indexof(argv, SEPARATOR);
-	MAIN_CLASS = str_sub_indexof(argv, ++index);
+char* get_main_class(char *argv) {
+	unsigned int index = str_find_index(argv, COLON);
+	char* main_class = str_sub(argv, ++index);
 
-	unsigned int length = str_len(MAIN_CLASS);
+	unsigned int length = str_len(main_class);
+	//replace . to / (com.Main -> com/Main)
 	for (int i = 0; i < length; i++) {
-		if (MAIN_CLASS[i] == '.') {
-			MAIN_CLASS[i] = '/';
+		if (main_class[i] == '.') {
+			main_class[i] = '/';
 		}
 	}
 
-	printf("main class is:%s\n", MAIN_CLASS);
+	if (PRINT_LOG)printf("main class is:%s\n", main_class);
+
+	return main_class;
+}
+void get_print_log(char *argv) {
+	unsigned int index = str_find_index(argv, COLON);
+	char* print_log_str = str_sub(argv, ++index);
+
+	if (str_equal(print_log_str, "1")) {
+		PRINT_LOG = 1;
+	} else {
+		PRINT_LOG = 0;
+	}
+
+	if (PRINT_LOG)printf("print_log:%d\n", PRINT_LOG);
 }
 
-void args_parse(int argc, char *argvs[]) {
+/**
+ *parse method parameter,get class_path and main_class
+ */
+char* parse_args(int argc, char *argvs[]) {
+
+	char* main_class_name;
 
 	for (int i = 1; i < argc; i++) {
 		char* argv = argvs[i];
@@ -57,8 +74,12 @@ void args_parse(int argc, char *argvs[]) {
 		if (str_if_startof(argv, CLASSPATH)) {
 			get_class_path(argv);
 		} else if (str_if_startof(argv, MAINCLASS)) {
-			get_main_class(argv);
+			main_class_name = get_main_class(argv);
+		} else if (str_if_startof(argv, PRINT_LOG_STR)) {
+			get_print_log(argv);
 		}
 	}
+
+	return main_class_name;
 }
 

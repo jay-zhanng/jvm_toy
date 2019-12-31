@@ -1,2 +1,2 @@
 # jvm_toy
-A toy of jvm writted by c,just for fun and learn.
+A toy of jvm writted by c,just for fun and learn.This jvm can interpret most of byte_code(about 130) so far.It implement class load,initialize,new a instance,access field(static and instance field),invoke method(implement extend and polymorphic)，create string literal pool and array.For data type,It is tested by int only, can't supper float and double;for character,it only support ASCII. This jvm is experimental,it don't implement all byte_code and data type.There are so many native methods in jvm,it will take too much time to write them.
